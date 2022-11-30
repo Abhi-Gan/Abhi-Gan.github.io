@@ -1,0 +1,132 @@
+---
+title: "Project 1"
+author: "Me"
+date: "2022-11-30"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,  
+                      warning = FALSE, message = FALSE, 
+                      fig.align = "center",
+                      R.options = list(max.print=100))
+```
+
+```{r}
+library(tidyverse) #installs the library tidyverse
+library(readxl)
+```
+
+```{r}
+#Assigns the datasets to a variable to read the dataset
+l_expect<-read_csv("https://raw.githubusercontent.com/Abhi-Gan/SDS-Project-1/main/Life_expectancy_at_birth.csv") 
+govt_expend<-read_csv("https://raw.githubusercontent.com/Abhi-Gan/SDS-Project-1/main/total-government-expenditure-on-education-gdp.csv")
+pop_and_gdp<-read_csv("https://raw.githubusercontent.com/Abhi-Gan/SDS-Project-1/main/Correct_Population_and_GDP_by_Country.csv")
+```
+
+```{r}
+#JOINING THE DATASETS
+life_and_edu<-inner_join(l_expect, govt_expend,by = c("Period" = "Year","Location"="Entity")) #merges two datasets and assigns them to a variable
+inc_gdp_edu<- life_and_edu %>% 
+  inner_join(pop_and_gdp,by = c("Period" = "Time","Location" = "Country Name")) #merges all three datasets and assigns them to a variable
+
+
+```
+
+```{r}
+final_dataset<-inc_gdp_edu %>% # sets to a variable called final_dataset
+  filter(Indicator == "Life expectancy at birth (years)")%>%
+  select("Location","Period","Value","Government expenditure on education, total (% of GDP)",	
+  "GDP (current US$) [NY.GDP.MKTP.CD]",
+  "GDP per capita (current US$) [NY.GDP.PCAP.CD]",
+  "Population, total [SP.POP.TOTL]","Dim1") %>% #in order to select only the required columns from the dataset
+  
+  rename("Country" = "Location","Sex" = "Dim1","life_expectancy" = "Value", "Year" = "Period","GDP(Current US$)" = "GDP (current US$) [NY.GDP.MKTP.CD]",	
+"GDP per capita (current US$)" = "GDP per capita (current US$) [NY.GDP.PCAP.CD]",	"Population" = "Population, total [SP.POP.TOTL]") %>% #renames the variables to new variables that are more representative of the research topic
+  
+  arrange(desc(life_expectancy)) #arranges the dataset in descending order
+  
+# Since the dataset is in string format for some of the variables, it needs to be converted to numeric format
+final_dataset$`GDP(Current US$)`<- as.numeric(final_dataset$`GDP(Current US$)`)
+final_dataset$Population<-as.numeric(final_dataset$Population)
+final_dataset$`GDP per capita (current US$)`<-as.numeric(final_dataset$`GDP per capita (current US$)`)
+
+# To calculate the inter-quartile range 
+# Quantile<-quantile(final_dataset$life_expectancy,probs = c(0.25,0.75),na.rm = TRUE)
+# inter_quartile_range<-Quantile[2]-Quantile[1]
+# upper<-Quantile[2]+1.5*inter_quartile_range
+# lower<-Quantile[1]-1.5*inter_quartile_range
+
+#IQR_life_expectancy<-final_dataset%>%
+  #filter(lower<life_expectancy && life_expectancy<upper)
+#IQR_life_expectancy
+
+#to calculate the summar statistics
+summary_stat<-final_dataset %>%
+  summary()
+
+# to tidy the summary statistics table, we do the following:
+summary_stat_table<-data.frame(summary_stat)%>%
+  na.omit(Freq)%>% #omits the NA data values in the frequency column
+  separate(Freq, into = c("Statistic","Value"),sep = ":") %>% #separates into two columns by ":" 
+  rename("Variable Name" = "Var2")%>% # renames the column name to make it more representative
+  select("Variable Name","Statistic","Value") #selects only the required variables
+  
+table(final_dataset$Sex)
+table(final_dataset$Country)
+
+# We are trying to calculate total education expendiutre in dollars but the mutate function appears to not work
+
+# creates a new variable to calculate the total government expenditure on education in dollars
+final_dataset<-final_dataset %>%
+  mutate("Log10 of Total_edu_exp (in dollars)" = log10(`Government expenditure on education, total (% of GDP)`)+log10(`GDP(Current US$)`)) #calculations in log ease understanding and avoid large numeric values
+
+final_dataset
+
+
+avg_life<-final_dataset %>%  
+  group_by(Sex, Country) %>%
+  summarize(average_life_expectancy = mean(life_expectancy))
+
+```
+
+```{r}
+#for visualization with 1 variable
+final_dataset%>%
+  ggplot(aes(x=`Log10 of Total_edu_exp (in dollars)`))+geom_boxplot(color = "darkblue")+labs(title = "Total government expenditure on education (in dollars)",x = "Government expenditure (in dollars)") + theme_minimal() + scale_x_continuous(breaks= seq(8,16,0.5), limits=c(8,15)) # creates a box plot for total government expenditure on education (in dollars)
+
+final_dataset%>%
+  ggplot(aes(x=`Government expenditure on education, total (% of GDP)`))+geom_boxplot(color = "darkgreen")+labs(title = "GDP(in dollars)",x = "GDP (in dollars)") + theme_classic(base_line_size = 0.6,base_rect_size = 0.6) # creates a box plot for the percentage of GDP spent on education by governments
+
+
+# # for visualization with 2 variables
+# final_dataset%>%
+#   filter(life_expectancy>80)%>%
+#   ggplot(aes(x =life_expectancy))+geom_density(stat = "summary", fun = "mean",color = "darkblue",fill = "lightblue",alpha = 0.4)+labs(title = "Life expectancy at birth for countries over the course of time",x = "Life Expectancy (in years)") +theme_minimal()+facet_wrap(~Year) + scale_x_continuous(breaks = seq(80,90,3))  # to create a density graph with 2 variables that depicts life expectancy over all the years in the dataset
+
+final_dataset%>%
+  ggplot(aes(x=life_expectancy,fill = Sex))+geom_density(alpha = 0.4)+labs(title = "Life expectancy at birth for countries by gender",x = "Life Expectancy (in years)")+theme_dark(base_line_size = 0.4,base_rect_size = 0.4) #to create a density graph for life expectancy by gender 
+
+# for visualization with 3 variables
+final_dataset %>% 
+  ggplot(aes(y=life_expectancy, x=`Log10 of Total_edu_exp (in dollars)`, color=Sex)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title = "Life expectancy based on total government expenditure on education for each gender")
+  theme_classic(base_line_size = 0.6,base_rect_size = 0.6) # to create a scatter plot to depict the impact of total government expenditure on life expectancy based on sex
+
+final_dataset %>%
+  ggplot(aes(y=`GDP per capita (current US$)`, x=`Log10 of Total_edu_exp (in dollars)`, color=life_expectancy)) +
+  geom_point(alpha=0.2)+
+  geom_smooth()+
+  scale_y_continuous(breaks = seq(0,100000,10000))+
+  labs(title = "Life expectancy based on total government expenditure on education and GDP per capita", x = "Total government expenditure on education (in dollars)", y = "GDP per capita (in dollars)")
+  #theme(legend.position = "none")
+```
+
+
+
+
+
+

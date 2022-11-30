@@ -1,0 +1,13 @@
+---
+title: "Project 2"
+author: "Me"
+date: "2020-12-01"
+output: html_document
+---
+
+## Test Project 2
+```{r}
+# TODO: replace
+print("We haven't finished project 2 yet. Will be replaced when completed.")
+```
+

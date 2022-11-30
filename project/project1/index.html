@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Abhinav Ganesh" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Project 1</title>
+    <meta name="generator" content="Hugo 0.107.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/post/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project/project1/">Project 1</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         November 30, 2022 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<pre class="r"><code>library(tidyverse) #installs the library tidyverse
+library(readxl)</code></pre>
+<pre class="r"><code>#Assigns the datasets to a variable to read the dataset
+l_expect&lt;-read_csv(&quot;https://raw.githubusercontent.com/Abhi-Gan/SDS-Project-1/main/Life_expectancy_at_birth.csv&quot;) 
+govt_expend&lt;-read_csv(&quot;https://raw.githubusercontent.com/Abhi-Gan/SDS-Project-1/main/total-government-expenditure-on-education-gdp.csv&quot;)
+pop_and_gdp&lt;-read_csv(&quot;https://raw.githubusercontent.com/Abhi-Gan/SDS-Project-1/main/Correct_Population_and_GDP_by_Country.csv&quot;)</code></pre>
+<pre class="r"><code>#JOINING THE DATASETS
+life_and_edu&lt;-inner_join(l_expect, govt_expend,by = c(&quot;Period&quot; = &quot;Year&quot;,&quot;Location&quot;=&quot;Entity&quot;)) #merges two datasets and assigns them to a variable
+inc_gdp_edu&lt;- life_and_edu %&gt;% 
+  inner_join(pop_and_gdp,by = c(&quot;Period&quot; = &quot;Time&quot;,&quot;Location&quot; = &quot;Country Name&quot;)) #merges all three datasets and assigns them to a variable</code></pre>
+<pre class="r"><code>final_dataset&lt;-inc_gdp_edu %&gt;% # sets to a variable called final_dataset
+  filter(Indicator == &quot;Life expectancy at birth (years)&quot;)%&gt;%
+  select(&quot;Location&quot;,&quot;Period&quot;,&quot;Value&quot;,&quot;Government expenditure on education, total (% of GDP)&quot;,   
+  &quot;GDP (current US$) [NY.GDP.MKTP.CD]&quot;,
+  &quot;GDP per capita (current US$) [NY.GDP.PCAP.CD]&quot;,
+  &quot;Population, total [SP.POP.TOTL]&quot;,&quot;Dim1&quot;) %&gt;% #in order to select only the required columns from the dataset
+  
+  rename(&quot;Country&quot; = &quot;Location&quot;,&quot;Sex&quot; = &quot;Dim1&quot;,&quot;life_expectancy&quot; = &quot;Value&quot;, &quot;Year&quot; = &quot;Period&quot;,&quot;GDP(Current US$)&quot; = &quot;GDP (current US$) [NY.GDP.MKTP.CD]&quot;,    
+&quot;GDP per capita (current US$)&quot; = &quot;GDP per capita (current US$) [NY.GDP.PCAP.CD]&quot;,   &quot;Population&quot; = &quot;Population, total [SP.POP.TOTL]&quot;) %&gt;% #renames the variables to new variables that are more representative of the research topic
+  
+  arrange(desc(life_expectancy)) #arranges the dataset in descending order
+  
+# Since the dataset is in string format for some of the variables, it needs to be converted to numeric format
+final_dataset$`GDP(Current US$)`&lt;- as.numeric(final_dataset$`GDP(Current US$)`)
+final_dataset$Population&lt;-as.numeric(final_dataset$Population)
+final_dataset$`GDP per capita (current US$)`&lt;-as.numeric(final_dataset$`GDP per capita (current US$)`)
+
+# To calculate the inter-quartile range 
+# Quantile&lt;-quantile(final_dataset$life_expectancy,probs = c(0.25,0.75),na.rm = TRUE)
+# inter_quartile_range&lt;-Quantile[2]-Quantile[1]
+# upper&lt;-Quantile[2]+1.5*inter_quartile_range
+# lower&lt;-Quantile[1]-1.5*inter_quartile_range
+
+#IQR_life_expectancy&lt;-final_dataset%&gt;%
+  #filter(lower&lt;life_expectancy &amp;&amp; life_expectancy&lt;upper)
+#IQR_life_expectancy
+
+#to calculate the summar statistics
+summary_stat&lt;-final_dataset %&gt;%
+  summary()
+
+# to tidy the summary statistics table, we do the following:
+summary_stat_table&lt;-data.frame(summary_stat)%&gt;%
+  na.omit(Freq)%&gt;% #omits the NA data values in the frequency column
+  separate(Freq, into = c(&quot;Statistic&quot;,&quot;Value&quot;),sep = &quot;:&quot;) %&gt;% #separates into two columns by &quot;:&quot; 
+  rename(&quot;Variable Name&quot; = &quot;Var2&quot;)%&gt;% # renames the column name to make it more representative
+  select(&quot;Variable Name&quot;,&quot;Statistic&quot;,&quot;Value&quot;) #selects only the required variables
+  
+table(final_dataset$Sex)</code></pre>
+<pre><code>## 
+## Both sexes     Female       Male 
+##        415        415        415</code></pre>
+<pre class="r"><code>table(final_dataset$Country)</code></pre>
+<pre><code>## 
+##              Afghanistan                  Albania                  Algeria 
+##                        9                        9                        3 
+##                   Angola      Antigua and Barbuda                Argentina 
+##                       12                        3                       12 
+##                  Armenia                Australia                  Austria 
+##                       12                        9                        9 
+##               Azerbaijan                  Bahrain               Bangladesh 
+##                       12                        3                        6 
+##                 Barbados                  Belarus                  Belgium 
+##                       12                       12                        6 
+##                   Belize                    Benin                   Bhutan 
+##                       12                       12                        9 
+##                 Botswana                   Brazil                 Bulgaria 
+##                        6                        9                        3 
+##             Burkina Faso                  Burundi                 Cambodia 
+##                        9                        9                        6 
+##                 Cameroon                   Canada Central African Republic 
+##                       12                        6                       12 
+##                     Chad                    Chile                    China 
+##                       12                        9                        6 
+##                 Colombia                  Comoros               Costa Rica 
+##                       12                        3                       12 
+##                  Croatia                     Cuba                   Cyprus 
+##                        3                        6                        9 
+##                  Czechia                  Denmark                 Djibouti 
+##                        9                        6                        9 
+##       Dominican Republic                  Ecuador              El Salvador 
+##                       12                       12                       12 
+##                  Estonia                 Eswatini                 Ethiopia 
+##                        9                       12                        9 
+##                     Fiji                  Finland                    Gabon 
+##                       12                        9                       12 
+##                  Georgia                  Germany                    Ghana 
+##                       12                        6                        6 
+##                   Greece                  Grenada                Guatemala 
+##                        6                        3                        9 
+##                   Guinea            Guinea-Bissau                   Guyana 
+##                       12                        9                        9 
+##                    Haiti                 Honduras                  Hungary 
+##                        3                        9                        9 
+##                  Iceland                    India                Indonesia 
+##                        9                        9                        9 
+##                  Ireland                   Israel                    Italy 
+##                        9                        9                        9 
+##                  Jamaica                   Jordan               Kazakhstan 
+##                       12                        6                       12 
+##                    Kenya                 Kiribati                   Kuwait 
+##                       12                        9                        6 
+##                   Latvia                  Lebanon                  Lesotho 
+##                        9                        9                        9 
+##                  Liberia                Lithuania               Luxembourg 
+##                        6                        6                        3 
+##               Madagascar                   Malawi                 Malaysia 
+##                       12                       12                       12 
+##                 Maldives                     Mali                    Malta 
+##                        9                       12                        6 
+##               Mauritania                Mauritius                   Mexico 
+##                        3                       12                        9 
+##                 Mongolia               Mozambique                  Myanmar 
+##                       12                        9                        9 
+##                  Namibia                    Nepal              Netherlands 
+##                       12                        9                        9 
+##              New Zealand                Nicaragua                    Niger 
+##                        6                       12                       12 
+##                   Norway                     Oman                 Pakistan 
+##                        9                        6                       12 
+##                   Panama 
+##                        9 
+##  [ reached getOption(&quot;max.print&quot;) -- omitted 41 entries ]</code></pre>
+<pre class="r"><code># We are trying to calculate total education expendiutre in dollars but the mutate function appears to not work
+
+# creates a new variable to calculate the total government expenditure on education in dollars
+final_dataset&lt;-final_dataset %&gt;%
+  mutate(&quot;Log10 of Total_edu_exp (in dollars)&quot; = log10(`Government expenditure on education, total (% of GDP)`)+log10(`GDP(Current US$)`)) #calculations in log ease understanding and avoid large numeric values
+
+final_dataset</code></pre>
+<pre><code>## # A tibble: 1,245 × 9
+##    Country      Year life_expectancy `Government expenditure …` `GDP(Current U…`
+##    &lt;chr&gt;       &lt;dbl&gt;           &lt;dbl&gt;                      &lt;dbl&gt;            &lt;dbl&gt;
+##  1 Singapore    2019            85.4                       2.63          3.75e11
+##  2 Spain        2015            84.9                       4.29          1.20e12
+##  3 Singapore    2015            84.9                       2.86          3.08e11
+##  4 Spain        2010            84.6                       4.86          1.42e12
+##  5 Switzerland  2015            84.5                       4.94          7.02e11
+##  6 Luxembourg   2015            84.3                       3.92          6.01e10
+##  7 Italy        2015            84.3                       4.07          1.84e12
+##  8 Italy        2010            84.2                       4.33          2.14e12
+##  9 Switzerland  2010            84.2                       4.77          6.03e11
+## 10 Australia    2015            84.2                       5.31          1.35e12
+## # … with 1,235 more rows, and 4 more variables:
+## #   `GDP per capita (current US$)` &lt;dbl&gt;, Population &lt;dbl&gt;, Sex &lt;chr&gt;,
+## #   `Log10 of Total_edu_exp (in dollars)` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>avg_life&lt;-final_dataset %&gt;%  
+  group_by(Sex, Country) %&gt;%
+  summarize(average_life_expectancy = mean(life_expectancy))</code></pre>
+<pre class="r"><code>#for visualization with 1 variable
+final_dataset%&gt;%
+  ggplot(aes(x=`Log10 of Total_edu_exp (in dollars)`))+geom_boxplot(color = &quot;darkblue&quot;)+labs(title = &quot;Total government expenditure on education (in dollars)&quot;,x = &quot;Government expenditure (in dollars)&quot;) + theme_minimal() + scale_x_continuous(breaks= seq(8,16,0.5), limits=c(8,15)) # creates a box plot for total government expenditure on education (in dollars)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>final_dataset%&gt;%
+  ggplot(aes(x=`Government expenditure on education, total (% of GDP)`))+geom_boxplot(color = &quot;darkgreen&quot;)+labs(title = &quot;GDP(in dollars)&quot;,x = &quot;GDP (in dollars)&quot;) + theme_classic(base_line_size = 0.6,base_rect_size = 0.6) # creates a box plot for the percentage of GDP spent on education by governments</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-5-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># # for visualization with 2 variables
+# final_dataset%&gt;%
+#   filter(life_expectancy&gt;80)%&gt;%
+#   ggplot(aes(x =life_expectancy))+geom_density(stat = &quot;summary&quot;, fun = &quot;mean&quot;,color = &quot;darkblue&quot;,fill = &quot;lightblue&quot;,alpha = 0.4)+labs(title = &quot;Life expectancy at birth for countries over the course of time&quot;,x = &quot;Life Expectancy (in years)&quot;) +theme_minimal()+facet_wrap(~Year) + scale_x_continuous(breaks = seq(80,90,3))  # to create a density graph with 2 variables that depicts life expectancy over all the years in the dataset
+
+final_dataset%&gt;%
+  ggplot(aes(x=life_expectancy,fill = Sex))+geom_density(alpha = 0.4)+labs(title = &quot;Life expectancy at birth for countries by gender&quot;,x = &quot;Life Expectancy (in years)&quot;)+theme_dark(base_line_size = 0.4,base_rect_size = 0.4) #to create a density graph for life expectancy by gender </code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-5-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># for visualization with 3 variables
+final_dataset %&gt;% 
+  ggplot(aes(y=life_expectancy, x=`Log10 of Total_edu_exp (in dollars)`, color=Sex)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title = &quot;Life expectancy based on total government expenditure on education for each gender&quot;)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-5-4.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>  theme_classic(base_line_size = 0.6,base_rect_size = 0.6) # to create a scatter plot to depict the impact of total government expenditure on life expectancy based on sex</code></pre>
+<pre><code>## List of 93
+##  $ line                      :List of 6
+##   ..$ colour       : chr &quot;black&quot;
+##   ..$ size         : num 0.6
+##   ..$ linetype     : num 1
+##   ..$ lineend      : chr &quot;butt&quot;
+##   ..$ arrow        : logi FALSE
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_line&quot; &quot;element&quot;
+##  $ rect                      :List of 5
+##   ..$ fill         : chr &quot;white&quot;
+##   ..$ colour       : chr &quot;black&quot;
+##   ..$ size         : num 0.6
+##   ..$ linetype     : num 1
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_rect&quot; &quot;element&quot;
+##  $ text                      :List of 11
+##   ..$ family       : chr &quot;&quot;
+##   ..$ face         : chr &quot;plain&quot;
+##   ..$ colour       : chr &quot;black&quot;
+##   ..$ size         : num 11
+##   ..$ hjust        : num 0.5
+##   ..$ vjust        : num 0.5
+##   ..$ angle        : num 0
+##   ..$ lineheight   : num 0.9
+##   ..$ margin       : &#39;margin&#39; num [1:4] 0points 0points 0points 0points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : logi FALSE
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ title                     : NULL
+##  $ aspect.ratio              : NULL
+##  $ axis.title                : NULL
+##  $ axis.title.x              :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : NULL
+##   ..$ vjust        : num 1
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 2.75points 0points 0points 0points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ axis.title.x.top          :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : NULL
+##   ..$ vjust        : num 0
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 0points 0points 2.75points 0points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ axis.title.x.bottom       : NULL
+##  $ axis.title.y              :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : NULL
+##   ..$ vjust        : num 1
+##   ..$ angle        : num 90
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 0points 2.75points 0points 0points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ axis.title.y.left         : NULL
+##  $ axis.title.y.right        :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : NULL
+##   ..$ vjust        : num 0
+##   ..$ angle        : num -90
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 0points 0points 0points 2.75points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ axis.text                 :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : chr &quot;grey30&quot;
+##   ..$ size         : &#39;rel&#39; num 0.8
+##   ..$ hjust        : NULL
+##   ..$ vjust        : NULL
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : NULL
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ axis.text.x               :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : NULL
+##   ..$ vjust        : num 1
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 2.2points 0points 0points 0points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ axis.text.x.top           :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : NULL
+##   ..$ vjust        : num 0
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 0points 0points 2.2points 0points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ axis.text.x.bottom        : NULL
+##  $ axis.text.y               :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : num 1
+##   ..$ vjust        : NULL
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 0points 2.2points 0points 0points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ axis.text.y.left          : NULL
+##  $ axis.text.y.right         :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : num 0
+##   ..$ vjust        : NULL
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 0points 0points 0points 2.2points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ axis.ticks                :List of 6
+##   ..$ colour       : chr &quot;grey20&quot;
+##   ..$ size         : NULL
+##   ..$ linetype     : NULL
+##   ..$ lineend      : NULL
+##   ..$ arrow        : logi FALSE
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_line&quot; &quot;element&quot;
+##  $ axis.ticks.x              : NULL
+##  $ axis.ticks.x.top          : NULL
+##  $ axis.ticks.x.bottom       : NULL
+##  $ axis.ticks.y              : NULL
+##  $ axis.ticks.y.left         : NULL
+##  $ axis.ticks.y.right        : NULL
+##  $ axis.ticks.length         : &#39;simpleUnit&#39; num 2.75points
+##   ..- attr(*, &quot;unit&quot;)= int 8
+##  $ axis.ticks.length.x       : NULL
+##  $ axis.ticks.length.x.top   : NULL
+##  $ axis.ticks.length.x.bottom: NULL
+##  $ axis.ticks.length.y       : NULL
+##  $ axis.ticks.length.y.left  : NULL
+##  $ axis.ticks.length.y.right : NULL
+##  $ axis.line                 :List of 6
+##   ..$ colour       : chr &quot;black&quot;
+##   ..$ size         : &#39;rel&#39; num 1
+##   ..$ linetype     : NULL
+##   ..$ lineend      : NULL
+##   ..$ arrow        : logi FALSE
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_line&quot; &quot;element&quot;
+##  $ axis.line.x               : NULL
+##  $ axis.line.x.top           : NULL
+##  $ axis.line.x.bottom        : NULL
+##  $ axis.line.y               : NULL
+##  $ axis.line.y.left          : NULL
+##  $ axis.line.y.right         : NULL
+##  $ legend.background         :List of 5
+##   ..$ fill         : NULL
+##   ..$ colour       : logi NA
+##   ..$ size         : NULL
+##   ..$ linetype     : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_rect&quot; &quot;element&quot;
+##  $ legend.margin             : &#39;margin&#39; num [1:4] 5.5points 5.5points 5.5points 5.5points
+##   ..- attr(*, &quot;unit&quot;)= int 8
+##  $ legend.spacing            : &#39;simpleUnit&#39; num 11points
+##   ..- attr(*, &quot;unit&quot;)= int 8
+##  $ legend.spacing.x          : NULL
+##  $ legend.spacing.y          : NULL
+##  $ legend.key                : list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  $ legend.key.size           : &#39;simpleUnit&#39; num 1.2lines
+##   ..- attr(*, &quot;unit&quot;)= int 3
+##  $ legend.key.height         : NULL
+##  $ legend.key.width          : NULL
+##  $ legend.text               :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : &#39;rel&#39; num 0.8
+##   ..$ hjust        : NULL
+##   ..$ vjust        : NULL
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : NULL
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ legend.text.align         : NULL
+##  $ legend.title              :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : num 0
+##   ..$ vjust        : NULL
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : NULL
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ legend.title.align        : NULL
+##  $ legend.position           : chr &quot;right&quot;
+##  $ legend.direction          : NULL
+##  $ legend.justification      : chr &quot;center&quot;
+##  $ legend.box                : NULL
+##  $ legend.box.just           : NULL
+##  $ legend.box.margin         : &#39;margin&#39; num [1:4] 0cm 0cm 0cm 0cm
+##   ..- attr(*, &quot;unit&quot;)= int 1
+##  $ legend.box.background     : list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  $ legend.box.spacing        : &#39;simpleUnit&#39; num 11points
+##   ..- attr(*, &quot;unit&quot;)= int 8
+##  $ panel.background          :List of 5
+##   ..$ fill         : chr &quot;white&quot;
+##   ..$ colour       : logi NA
+##   ..$ size         : NULL
+##   ..$ linetype     : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_rect&quot; &quot;element&quot;
+##  $ panel.border              : list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  $ panel.spacing             : &#39;simpleUnit&#39; num 5.5points
+##   ..- attr(*, &quot;unit&quot;)= int 8
+##  $ panel.spacing.x           : NULL
+##  $ panel.spacing.y           : NULL
+##  $ panel.grid                :List of 6
+##   ..$ colour       : chr &quot;grey92&quot;
+##   ..$ size         : NULL
+##   ..$ linetype     : NULL
+##   ..$ lineend      : NULL
+##   ..$ arrow        : logi FALSE
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_line&quot; &quot;element&quot;
+##  $ panel.grid.major          : list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  $ panel.grid.minor          : list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  $ panel.grid.major.x        : NULL
+##  $ panel.grid.major.y        : NULL
+##  $ panel.grid.minor.x        : NULL
+##  $ panel.grid.minor.y        : NULL
+##  $ panel.ontop               : logi FALSE
+##  $ plot.background           :List of 5
+##   ..$ fill         : NULL
+##   ..$ colour       : chr &quot;white&quot;
+##   ..$ size         : NULL
+##   ..$ linetype     : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_rect&quot; &quot;element&quot;
+##  $ plot.title                :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : &#39;rel&#39; num 1.2
+##   ..$ hjust        : num 0
+##   ..$ vjust        : num 1
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 0points 0points 5.5points 0points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ plot.title.position       : chr &quot;panel&quot;
+##  $ plot.subtitle             :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : num 0
+##   ..$ vjust        : num 1
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 0points 0points 5.5points 0points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ plot.caption              :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : &#39;rel&#39; num 0.8
+##   ..$ hjust        : num 1
+##   ..$ vjust        : num 1
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 5.5points 0points 0points 0points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ plot.caption.position     : chr &quot;panel&quot;
+##  $ plot.tag                  :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : &#39;rel&#39; num 1.2
+##   ..$ hjust        : num 0.5
+##   ..$ vjust        : num 0.5
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : NULL
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ plot.tag.position         : chr &quot;topleft&quot;
+##  $ plot.margin               : &#39;margin&#39; num [1:4] 5.5points 5.5points 5.5points 5.5points
+##   ..- attr(*, &quot;unit&quot;)= int 8
+##  $ strip.background          :List of 5
+##   ..$ fill         : chr &quot;white&quot;
+##   ..$ colour       : chr &quot;black&quot;
+##   ..$ size         : &#39;rel&#39; num 2
+##   ..$ linetype     : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_rect&quot; &quot;element&quot;
+##  $ strip.background.x        : NULL
+##  $ strip.background.y        : NULL
+##  $ strip.placement           : chr &quot;inside&quot;
+##  $ strip.text                :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : chr &quot;grey10&quot;
+##   ..$ size         : &#39;rel&#39; num 0.8
+##   ..$ hjust        : NULL
+##   ..$ vjust        : NULL
+##   ..$ angle        : NULL
+##   ..$ lineheight   : NULL
+##   ..$ margin       : &#39;margin&#39; num [1:4] 4.4points 4.4points 4.4points 4.4points
+##   .. ..- attr(*, &quot;unit&quot;)= int 8
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ strip.text.x              : NULL
+##  $ strip.text.y              :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : NULL
+##   ..$ vjust        : NULL
+##   ..$ angle        : num -90
+##   ..$ lineheight   : NULL
+##   ..$ margin       : NULL
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  $ strip.switch.pad.grid     : &#39;simpleUnit&#39; num 2.75points
+##   ..- attr(*, &quot;unit&quot;)= int 8
+##  $ strip.switch.pad.wrap     : &#39;simpleUnit&#39; num 2.75points
+##   ..- attr(*, &quot;unit&quot;)= int 8
+##  $ strip.text.y.left         :List of 11
+##   ..$ family       : NULL
+##   ..$ face         : NULL
+##   ..$ colour       : NULL
+##   ..$ size         : NULL
+##   ..$ hjust        : NULL
+##   ..$ vjust        : NULL
+##   ..$ angle        : num 90
+##   ..$ lineheight   : NULL
+##   ..$ margin       : NULL
+##   ..$ debug        : NULL
+##   ..$ inherit.blank: logi TRUE
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_text&quot; &quot;element&quot;
+##  - attr(*, &quot;class&quot;)= chr [1:2] &quot;theme&quot; &quot;gg&quot;
+##  - attr(*, &quot;complete&quot;)= logi TRUE
+##  - attr(*, &quot;validate&quot;)= logi TRUE</code></pre>
+<pre class="r"><code>final_dataset %&gt;%
+  ggplot(aes(y=`GDP per capita (current US$)`, x=`Log10 of Total_edu_exp (in dollars)`, color=life_expectancy)) +
+  geom_point(alpha=0.2)+
+  geom_smooth()+
+  scale_y_continuous(breaks = seq(0,100000,10000))+
+  labs(title = &quot;Life expectancy based on total government expenditure on education and GDP per capita&quot;, x = &quot;Total government expenditure on education (in dollars)&quot;, y = &quot;GDP per capita (in dollars)&quot;)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-5-5.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>  #theme(legend.position = &quot;none&quot;)</code></pre>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

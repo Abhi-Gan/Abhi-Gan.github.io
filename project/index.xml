@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Abhinav Ganesh</title>
+    <link>/project/</link>
+    <description>Recent content in Projects on Abhinav Ganesh</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Wed, 30 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Project 1</title>
+      <link>/project/project1/</link>
+      <pubDate>Wed, 30 Nov 2022 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>library(tidyverse) #installs the library tidyverse library(readxl) #Assigns the datasets to a variable to read the dataset l_expect&amp;lt;-read_csv(&amp;quot;https://raw.githubusercontent.com/Abhi-Gan/SDS-Project-1/main/Life_expectancy_at_birth.csv&amp;quot;) govt_expend&amp;lt;-read_csv(&amp;quot;https://raw.githubusercontent.com/Abhi-Gan/SDS-Project-1/main/total-government-expenditure-on-education-gdp.csv&amp;quot;) pop_and_gdp&amp;lt;-read_csv(&amp;quot;https://raw.githubusercontent.com/Abhi-Gan/SDS-Project-1/main/Correct_Population_and_GDP_by_Country.csv&amp;quot;) #JOINING THE DATASETS life_and_edu&amp;lt;-inner_join(l_expect, govt_expend,by = c(&amp;quot;Period&amp;quot; = &amp;quot;Year&amp;quot;,&amp;quot;Location&amp;quot;=&amp;quot;Entity&amp;quot;)) #merges two datasets and assigns them to a variable inc_gdp_edu&amp;lt;- life_and_edu %&amp;gt;% inner_join(pop_and_gdp,by = c(&amp;quot;Period&amp;quot; = &amp;quot;Time&amp;quot;,&amp;quot;Location&amp;quot; = &amp;quot;Country Name&amp;quot;)) #merges all three datasets and assigns them to a variable final_dataset&amp;lt;-inc_gdp_edu %&amp;gt;% # sets to a variable called final_dataset filter(Indicator == &amp;quot;Life expectancy at birth (years)&amp;quot;)%&amp;gt;% select(&amp;quot;Location&amp;quot;,&amp;quot;Period&amp;quot;,&amp;quot;Value&amp;quot;,&amp;quot;Government expenditure on education, total (% of GDP)&amp;quot;, &amp;quot;GDP (current US$) [NY.</description>
+    </item>
+    
+    <item>
+      <title>Project 2</title>
+      <link>/project/project2/</link>
+      <pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description> Test Project 2 # TODO: replace print(&amp;quot;We haven&amp;#39;t finished project 2 yet. Will be replaced when completed.&amp;quot;) ## [1] &amp;quot;We haven&amp;#39;t finished project 2 yet. Will be replaced when completed.&amp;quot; </description>
+    </item>
+    
+  </channel>
+</rss>
